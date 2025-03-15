@@ -97,7 +97,7 @@ def process_image() -> Response:
 @app.route("/im_delete", methods=["POST"])
 def delete_image() -> Response:
 
-    file_name: str = f"{request.form["file"]}{FILE_TYPE}"
+    file_name: str = request.form["file"] + FILE_TYPE
     src_file: Path = Path(f"{UPLOADS_DIR}/{file_name}")
     dst_file: Path = Path(f"{DELETE_DIR}/{file_name}")
     src_file.rename(dst_file)
