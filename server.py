@@ -20,6 +20,7 @@ TARGET_ASPECT_RATIO: float = TARGET_RESOLUTION[0] / TARGET_RESOLUTION[1]
 UPLOADS_DIR: str = "uploads"
 FORM_FILE: str = "index.html"
 
+
 app = Flask(__name__)
 
 @app.route("/")
@@ -76,21 +77,6 @@ def process_image() -> Response:
     )
 
 
-# def get_ip():
-#     from socket import socket
-# 
-#     socket_test: socket = socket(socket.AF_INET, socket.SOCK_DGRAM)
-#     socket_test.settimeout(0)
-#     ip: str = "no network"
-#     try:
-#         socket_test.connect(("", 1))
-#         ip = socket_test.getsockname()[0]
-#     finally:
-#         socket_test.close()
-#     return ip
-
 
 if __name__ == "__main__":
-    from waitress import serve
-
-    serve(app, port=8080)
+    app.run(port=8080)
