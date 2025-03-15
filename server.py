@@ -1,6 +1,8 @@
 #!/usr/bin/python
+from dataclasses import dataclass
 from datetime import datetime
-from flask import Flask, current_app, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, render_template, redirect, url_for
+from pathlib import Path
 from PIL import Image, ImagePalette
 
 PALETTE_SEQUENCE = [
@@ -17,16 +19,37 @@ PALETTE: ImagePalette = ImagePalette.ImagePalette(
 TARGET_RESOLUTION: tuple[int, int] = (600, 400)
 TARGET_ASPECT_RATIO: float = TARGET_RESOLUTION[0] / TARGET_RESOLUTION[1]
 
-UPLOADS_DIR: str = "uploads"
+UPLOADS_DIR: str = "static/uploads"
+DELETE_DIR: str = "static/deletes"
+FILE_TYPE: str = ".bmp"
 FORM_FILE: str = "index.html"
+
+
+@dataclass
+class UploadedImage:
+    name: str
+    location: str
 
 
 app = Flask(__name__)
 
+
 @app.route("/")
-def hello_world():
-    # TODO: Will make a templare later
-    return current_app.send_static_file(FORM_FILE)
+def index():
+    return render_template(FORM_FILE)
+
+
+def get_uploaded_images() -> list[UploadedImage]:
+    # Get contents of uploads
+    uploads_path: Path = Path(UPLOADS_DIR)
+    return [
+        UploadedImage(
+            name=str(location).split("/")[-1].split(".")[0],
+            location=str(location)
+        )
+        for location in list(uploads_path.rglob(f"*{FILE_TYPE}"))
+    ]
+
 
 @app.route("/im_submit", methods=["POST"])
 def process_image() -> Response:
@@ -66,15 +89,24 @@ def process_image() -> Response:
     store_image: Image = cropped_image.quantize(colors=len(PALETTE_SEQUENCE) // 3, palette=palette_image)
 
     timestamp: str = datetime.now().strftime("%y%m%d_%H%M%S")
-    store_image.save(f"{UPLOADS_DIR}/{timestamp}.bmp")
+    store_image.save(f"{UPLOADS_DIR}/{timestamp}{FILE_TYPE}")
 
-    return jsonify(
-        {
-            "msg": "success",
-            "timestamp": timestamp,
-            "size": [palette_image.width, palette_image.height],
-        }
-    )
+    return redirect(url_for('index'))
+
+
+@app.route("/im_delete", methods=["POST"])
+def delete_image() -> Response:
+
+    file_name: str = f"{request.form["file"]}{FILE_TYPE}"
+    src_file: Path = Path(f"{UPLOADS_DIR}/{file_name}")
+    dst_file: Path = Path(f"{DELETE_DIR}/{file_name}")
+    src_file.rename(dst_file)
+
+    print(f"{src_file} -> {dst_file}")
+
+    return redirect(url_for('index'))
+
 
 if __name__ == "__main__":
+    app.jinja_env.globals.update(get_uploaded_images=get_uploaded_images)
     app.run(host="127.0.0.1", port=8080)

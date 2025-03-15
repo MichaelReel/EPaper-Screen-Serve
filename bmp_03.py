@@ -1,13 +1,11 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import sys
 import os
 import logging
 from lib.waveshare_epd import epd4in0e
 import time
-from PIL import Image, ImageDraw, ImageFont
-import traceback
+from PIL import Image
 
 logging.basicConfig(level=logging.DEBUG)
 
