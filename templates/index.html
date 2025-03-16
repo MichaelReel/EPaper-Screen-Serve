@@ -31,6 +31,12 @@
                     <input type="submit" value="Delete"/>
                 </form>
             </td>
+            <td>
+                <form action="im_display" method="post">
+                    <input type="hidden" name="file" value="{{ image_name.name }}"/>
+                    <input type="submit" value="Display"/>
+                </form>
+            </td>
         </tr>
     {% endfor %}
     </table>

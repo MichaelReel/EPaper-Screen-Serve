@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, request, Response, render_template, redirect, url_for
 from pathlib import Path
 from PIL import Image, ImagePalette
+import time
 
 SCREEN_AVAILABLE: bool = False
 try:
@@ -118,7 +119,7 @@ def delete_image() -> Response:
     return redirect(url_for('index'))
 
 
-@app.route("/im_clear")
+@app.route("/im_clear", methods=["GET"])
 def clear_image() -> Response:
     if SCREEN_AVAILABLE:
         try:
@@ -126,7 +127,6 @@ def clear_image() -> Response:
             epd.init()
             epd.Clear()
             epd.sleep()
-            epd4in0e.epdconfig.module_exit(cleanup=True)
         except Exception as exc:
             print(f"Issue \"{exc}\" occurred trying to clear screen")
     else:
@@ -135,5 +135,38 @@ def clear_image() -> Response:
     return redirect(url_for('index'))
 
 
+@app.route("/im_display", methods=["POST"])
+def display_image() -> Response:
+    file_name: str = UPLOADS_DIR + "/" + request.form["file"] + FILE_TYPE
+    file: Path = Path(file_name)
+
+    if not file.is_file():
+        print(f"Selected file for display doesn't exist: {file_name}")
+        return redirect(url_for('index'))
+
+    if SCREEN_AVAILABLE:
+        try:
+            epd = epd4in0e.EPD()
+            epd.init()
+
+            # read bmp file 
+            Himage = Image.open(file)
+            epd.display(epd.getbuffer(Himage))
+            time.sleep(3)
+
+            epd.sleep()
+
+        except Exception as exc:
+            print(f"Issue \"{exc}\" occurred trying to display {file_name}")
+    else:
+        print(f"Skipping display of {file_name} as screen not initialised")
+
+    return redirect(url_for('index'))
+
+
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8080)
+    try:
+        app.run(host="127.0.0.1", port=8080)
+    finally:
+        if SCREEN_AVAILABLE:
+            epd4in0e.epdconfig.module_exit(cleanup=True)
