@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 try:
     logging.info("Clearing Demo")
 
-    epd = epd4in0e.EPD()   
+    epd = epd4in0e.EPD()
     logging.info("init and Clear")
     epd.init()
     epd.Clear()

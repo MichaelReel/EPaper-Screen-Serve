@@ -1,9 +1,16 @@
 #!/usr/bin/python
 from dataclasses import dataclass
 from datetime import datetime
-from flask import Flask, request, Response, jsonify, render_template, redirect, url_for
+from flask import Flask, request, Response, render_template, redirect, url_for
 from pathlib import Path
 from PIL import Image, ImagePalette
+
+SCREEN_AVAILABLE: bool = False
+try:
+    from lib.waveshare_epd import epd4in0e
+    SCREEN_AVAILABLE = True
+except OSError as ose:
+    print(f"OSError \"{ose}\" while trying to initialise E-ink Screen")
 
 PALETTE_SEQUENCE = [
     0x00, 0x00, 0x00,
@@ -54,6 +61,11 @@ def get_uploaded_images() -> list[UploadedImage]:
 @app.route("/im_submit", methods=["POST"])
 def process_image() -> Response:
     file = request.files["image"]
+
+    if not file:
+        print("No file submitted")
+        return redirect(url_for('index'))
+
     upload_image: Image = Image.open(file.stream)
 
     aspect_ratio: float = upload_image.width / upload_image.height
@@ -102,7 +114,23 @@ def delete_image() -> Response:
     dst_file: Path = Path(f"{DELETE_DIR}/{file_name}")
     src_file.rename(dst_file)
 
-    print(f"{src_file} -> {dst_file}")
+
+    return redirect(url_for('index'))
+
+
+@app.route("/im_clear")
+def clear_image() -> Response:
+    if SCREEN_AVAILABLE:
+        try:
+            epd = epd4in0e.EPD()
+            epd.init()
+            epd.Clear()
+            epd.sleep()
+            epd4in0e.epdconfig.module_exit(cleanup=True)
+        except Exception as exc:
+            print(f"Issue \"{exc}\" occurred trying to clear screen")
+    else:
+        print("Skipping clear as screen not initialised")
 
     return redirect(url_for('index'))
 
