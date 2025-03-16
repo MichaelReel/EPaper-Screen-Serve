@@ -15,7 +15,7 @@
     </form>
 
     <table>
-    {% for image_name in get_uploaded_images() %}
+    {% for image_name in upload_images %}
         <tr>
             <td>{{ image_name.name }}</td>
             <td><img src="{{ image_name.location }}"/></td>

@@ -36,7 +36,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template(FORM_FILE)
+    return render_template(FORM_FILE, upload_images=get_uploaded_images())
 
 
 def get_uploaded_images() -> list[UploadedImage]:
@@ -108,5 +108,4 @@ def delete_image() -> Response:
 
 
 if __name__ == "__main__":
-    app.jinja_env.globals.update(get_uploaded_images=get_uploaded_images)
     app.run(host="127.0.0.1", port=8080)
