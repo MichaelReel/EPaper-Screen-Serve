@@ -7,6 +7,8 @@ from PIL import Image, ImagePalette
 import time
 
 SCREEN_AVAILABLE: bool = False
+# TODO: Maybe put this onto the index page:
+POWER_ON_TOP: bool = True
 try:
     from lib.waveshare_epd import epd4in0e
     SCREEN_AVAILABLE = True
@@ -59,6 +61,7 @@ def get_uploaded_images() -> list[UploadedImage]:
     ]
 
 
+# TODO: Find a way to accept larger images files so we dont' get 413
 @app.route("/im_submit", methods=["POST"])
 def process_image() -> Response:
     file = request.files["image"]
@@ -98,6 +101,8 @@ def process_image() -> Response:
 
     palette_image: Image = Image.new("P", (1, 6))
     palette_image.putpalette(PALETTE_SEQUENCE)
+
+    # TODO: Convert images with alpha channel to flat RGB before quantize
 
     store_image: Image = cropped_image.quantize(colors=len(PALETTE_SEQUENCE) // 3, palette=palette_image)
 
@@ -150,8 +155,12 @@ def display_image() -> Response:
             epd.init()
 
             # read bmp file 
-            Himage = Image.open(file)
-            epd.display(epd.getbuffer(Himage))
+            image: Image = Image.open(file)
+
+            if POWER_ON_TOP:
+                image = image.transpose(Image.ROTATE_180)
+
+            epd.display(epd.getbuffer(image))
             time.sleep(3)
 
             epd.sleep()
