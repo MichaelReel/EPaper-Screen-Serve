@@ -3,43 +3,121 @@
 
 <head>
     <title>E-ink Frame Image Uploader</title>
-    <link rel="stylesheet" href="styles.css" />
+    <style>
+        h1 {
+            color: darkslategray;
+        }
+        body {
+            background-color: cornflowerblue;
+            font-size: x-large;
+        }
+        input {
+            font-size: x-large;
+        }
+        button {
+            font-size: x-large;
+        }
+        .main-controls {
+            padding: 4px;
+            border-radius: 4px;
+            border: 3px;
+            border-style: double;
+        }
+        .flex-container {
+            display: grid;
+            flex-direction: row;
+        }
+        /* Responsive layout - makes a one column layout instead of a two-column layout */
+        /* @media (max-width: 1200px) {
+            .flex-container {
+                flex-direction: column;
+            }
+        } */
+        .flex-content {
+            background-color: cornflowerblue;
+            padding: 4px;
+        }
+        .image-cell {
+            padding: 4px;
+            border-radius: 4px;
+            border: 3px;
+        }
+        .image-cell-controls {
+            display: flex;
+            flex-direction: row;
+        }
+        .wait-notification-overlay {
+            position:fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px;
+            opacity: 0.70;
+        }
+        .wait-notification {
+            background-color: darkblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: lightblue;
+            border-radius: 10px;
+            width: 100%;
+            height: 100%;
+        }
+        .wait-notification-text {
+            background-color: black;
+            padding: 20px;
+            opacity: 1.5;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 
-<body style="background-color: cornflowerblue;">
-    <h1 style="color:green;">Image Upload</h1>
-    <form action="im_submit" method="post" enctype="multipart/form-data">
-        <p><label for="imageUpload">Choose an image to upload:</label></p>
-        <p>
-            <input type="file" id="imageUpload" name="image" accept="image/*">
-            <input type="submit" value="Upload Image">
-        </p>
-    </form>
+<body>
+    <h1>Image Upload</h1>
+    <div class="main-controls">
+        <form action="im_submit" method="post" enctype="multipart/form-data" onsubmit="document.getElementById('waitNotification').style.display = 'block';">
+            <p><label for="imageUpload">Choose an image to upload:</label></p>
+            <p>
+                <input type="file" id="imageUpload" name="image" accept="image/*">
+                <input type="submit" value="Upload Image">
+            </p>
+        </form>
 
-    <a href="im_clear" title="Set the e-ink screen to a blank image">
-        <button type="button">Clear</button>
-    </a>
+        <a href="im_clear" title="Set the e-ink screen to a blank image">
+            <button type="button" onclick="document.getElementById('waitNotification').style.display = 'block';">Clear</button>
+        </a>
+    </div>
 
-    <table>
+    <div class="flex-container">
     {% for image_name in upload_images %}
-        <tr>
-            <td>{{ image_name.name }}</td>
-            <td><img src="{{ image_name.location }}"/></td>
-            <td>
-                <form action="im_delete" method="post">
-                    <input type="hidden" name="file" value="{{ image_name.name }}"/>
-                    <input type="submit" value="Delete"/>
-                </form>
-            </td>
-            <td>
-                <form action="im_display" method="post">
-                    <input type="hidden" name="file" value="{{ image_name.name }}"/>
-                    <input type="submit" value="Display"/>
-                </form>
-            </td>
-        </tr>
+        <div class="flex-content">
+            <div class="image-cell">
+                <div class="image-cell-name">{{ image_name.name }}</div>
+                <div class="image-cell-image"><img src="{{ image_name.location }}"/></div>
+                <div class="image-cell-controls">
+                    <form action="im_delete" method="post" onsubmit="document.getElementById('waitNotification').style.display = 'block';">
+                        <input type="hidden" name="file" value="{{ image_name.name }}"/>
+                        <input type="submit" value="Delete"/>
+                    </form>
+                    <form action="im_display" method="post" onsubmit="document.getElementById('waitNotification').style.display = 'block';">
+                        <input type="hidden" name="file" value="{{ image_name.name }}"/>
+                        <input type="submit" value="Display"/>
+                    </form>
+                </div>
+            </div>
+        </div>
     {% endfor %}
-    </table>
+    </div>
+
+    <div class="wait-notification-overlay" id="waitNotification" style="display: none;">
+        <div class="wait-notification">
+            <div class="wait-notification-text">
+                ⏳ Updating E-Ink Display, please wait... ⏳
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

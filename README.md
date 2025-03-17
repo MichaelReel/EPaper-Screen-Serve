@@ -17,6 +17,7 @@ sudo apt install nginx
 Create a nginx configuration:
 
 Where`<local-ip>` is something like `192.168.0.62`.
+The `client_max_body_size` can be changed to limit image size or loosen the limit.
 
 Create file: `/etc/nginx/sites-available/eink_service` with contents:
 
@@ -24,6 +25,7 @@ Create file: `/etc/nginx/sites-available/eink_service` with contents:
 server {
     listen 80;
     server_name <local-ip>;
+    client_max_body_size 10M;
 
     location / {
         proxy_pass http://127.0.0.1:8080;

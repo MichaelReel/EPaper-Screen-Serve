@@ -28,6 +28,7 @@ PALETTE: ImagePalette = ImagePalette.ImagePalette(
 )
 TARGET_RESOLUTION: tuple[int, int] = (600, 400)
 TARGET_ASPECT_RATIO: float = TARGET_RESOLUTION[0] / TARGET_RESOLUTION[1]
+ALPHA_REPLACE_COLOR: tuple[int, int, int] = (0xFF, 0xFF, 0xFF)
 
 UPLOADS_DIR: str = "static/uploads"
 DELETE_DIR: str = "static/deletes"
@@ -102,7 +103,12 @@ def process_image() -> Response:
     palette_image: Image = Image.new("P", (1, 6))
     palette_image.putpalette(PALETTE_SEQUENCE)
 
-    # TODO: Convert images with alpha channel to flat RGB before quantize
+    if cropped_image.mode == "RGBA":
+        # Convert images with alpha channel to flat RGB before quantize
+        cropped_image.load()  # needed for split()
+        background = Image.new(mode='RGB', size=cropped_image.size, color=ALPHA_REPLACE_COLOR)
+        background.paste(cropped_image, mask=cropped_image.split()[3])  # 3 is the alpha channel
+        cropped_image = background
 
     store_image: Image = cropped_image.quantize(colors=len(PALETTE_SEQUENCE) // 3, palette=palette_image)
 
@@ -120,7 +126,6 @@ def delete_image() -> Response:
     dst_file: Path = Path(f"{DELETE_DIR}/{file_name}")
     src_file.rename(dst_file)
 
-
     return redirect(url_for('index'))
 
 
@@ -136,6 +141,7 @@ def clear_image() -> Response:
             print(f"Issue \"{exc}\" occurred trying to clear screen")
     else:
         print("Skipping clear as screen not initialised")
+        time.sleep(2) # Simulate the delayed response due to E-Ink time
 
     return redirect(url_for('index'))
 
@@ -169,6 +175,7 @@ def display_image() -> Response:
             print(f"Issue \"{exc}\" occurred trying to display {file_name}")
     else:
         print(f"Skipping display of {file_name} as screen not initialised")
+        time.sleep(2) # Simulate the delayed response due to E-Ink time
 
     return redirect(url_for('index'))
 
