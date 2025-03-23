@@ -80,8 +80,11 @@
         <form action="im_submit" method="post" enctype="multipart/form-data" onsubmit="document.getElementById('waitNotification').style.display = 'block';">
             <p><label for="imageUpload">Choose an image to upload:</label></p>
             <p>
-                <input type="file" id="imageUpload" name="image" accept="image/*">
-                <input type="submit" value="Upload Image">
+                <input type="file" id="imageUpload" name="image" accept="image/*"/>
+                <input type="submit" value="Upload Image"/>
+            </p>
+            <p>
+                <input type="checkbox" id="noDither" name="no-dither">Disable Dithering</input>
             </p>
         </form>
 

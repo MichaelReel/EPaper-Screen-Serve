@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, request, Response, render_template, redirect, url_for
 from pathlib import Path
 from PIL import Image, ImagePalette
+from PIL.Image import Dither
 import time
 
 SCREEN_AVAILABLE: bool = False
@@ -65,11 +66,15 @@ def get_uploaded_images() -> list[UploadedImage]:
 # TODO: Find a way to accept larger images files so we dont' get 413
 @app.route("/im_submit", methods=["POST"])
 def process_image() -> Response:
-    file = request.files["image"]
+    file = request.files.get("image")
 
     if not file:
         print("No file submitted")
         return redirect(url_for('index'))
+
+    dither: Dither = Dither.FLOYDSTEINBERG
+    if request.form.get("no-dither") == "on":
+        dither = Dither.NONE
 
     upload_image: Image = Image.open(file.stream)
 
@@ -110,7 +115,9 @@ def process_image() -> Response:
         background.paste(cropped_image, mask=cropped_image.split()[3])  # 3 is the alpha channel
         cropped_image = background
 
-    store_image: Image = cropped_image.quantize(colors=len(PALETTE_SEQUENCE) // 3, palette=palette_image)
+    store_image: Image = cropped_image.quantize(
+        colors=len(PALETTE_SEQUENCE) // 3, palette=palette_image, dither=dither
+    )
 
     timestamp: str = datetime.now().strftime("%y%m%d_%H%M%S")
     store_image.save(f"{UPLOADS_DIR}/{timestamp}{FILE_TYPE}")
